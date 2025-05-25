@@ -1,153 +1,154 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+} from 'react-native';
 
-const getRandomColor = () => {
-  const r = Math.floor(Math.random() * 256);
-  const g = Math.floor(Math.random() * 256);
-  const b = Math.floor(Math.random() * 256);
-  return `rgb(${r}, ${g}, ${b})`;
-};
+const colors = [
+  { name: 'Red', hex: '#E63946' },
+  { name: 'Green', hex: '#2A9D8F' },
+  { name: 'Blue', hex: '#457B9D' },
+  { name: 'Purple', hex: '#7209B7' },
+  { name: 'Orange', hex: '#F4A261' },
+  { name: 'Pink', hex: '#F72585' },
+];
 
 export default function App() {
   const [name, setName] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const [colors, setColors] = useState([]);
-  const [correctColor, setCorrectColor] = useState('');
+  const [bgColor, setBgColor] = useState('#fff');
+  const [currentColor, setCurrentColor] = useState(null);
+  const [guess, setGuess] = useState('');
   const [message, setMessage] = useState('');
+  const [gameStarted, setGameStarted] = useState(false);
 
-  const generateColors = () => {
-    const newColors = Array.from({ length: 3 }, () => getRandomColor());
-    const answer = newColors[Math.floor(Math.random() * newColors.length)];
-    setColors(newColors);
-    setCorrectColor(answer);
+  const startGame = () => {
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    setCurrentColor(randomColor);
+    setBgColor('#fff'); // Reset background
+    setGuess('');
     setMessage('');
+    setGameStarted(true);
   };
 
-  useEffect(() => {
-    if (submitted) generateColors();
-  }, [submitted]);
-
-  const handleGuess = (color) => {
-    if (color === correctColor) {
-      setMessage(`Congratulations!!, ${name}! You guessed the correct color.`);
-    } else {
-      setMessage(`Miss!!, ${name}, that's not it. Try again!`);
+  const checkGuess = () => {
+    if (!guess.trim()) {
+      setMessage('🚫 Please enter a guess!');
+      return;
     }
+
+    if (guess.trim().toLowerCase() === currentColor.name.toLowerCase()) {
+      setMessage(`✅ Spot on! It was ${currentColor.name}.`);
+      setBgColor(currentColor.hex);
+    } else {
+      setMessage(`❌ Nope! It was actually ${currentColor.name}.`);
+      setBgColor(currentColor.hex);
+    }
+
+    setGameStarted(false); // End current round
   };
-
-  if (!submitted) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Welcome! What's your name?</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your name"
-          value={name}
-          onChangeText={setName}
-        />
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            if (name.trim() !== '') {
-              setSubmitted(true);
-            }
-          }}
-        >
-          <Text style={styles.buttonText}>Start Game 🎮</Text>
-        </TouchableOpacity>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Developed by Verdo</Text>
-        </View>
-      </View>
-    );
-  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Hey {name}, guess the color!</Text>
-      <Text style={styles.rgbText}>{correctColor.toUpperCase()}</Text>
-      <View style={styles.blocksContainer}>
-        {colors.map((color, index) => (
-          <TouchableOpacity
-            key={index}
-            onPress={() => handleGuess(color)}
-            style={[styles.colorBlock, { backgroundColor: color }]}
-          />
-        ))}
-      </View>
-      <Text style={styles.message}>{message}</Text>
-      <TouchableOpacity style={styles.button} onPress={generateColors}>
-        <Text style={styles.buttonText}>🔄 Try New Color</Text>
-      </TouchableOpacity>
+    <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
+      <Text style={styles.title}>🎨 Welcome to the Color Game!</Text>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Developed by Verdo</Text>
-      </View>
-    </View>
+      <TextInput
+        placeholder="Enter your name"
+        style={styles.input}
+        onChangeText={(text) => setName(text)}
+        value={name}
+        placeholderTextColor="#555"
+      />
+
+      {name ? (
+        <Text style={styles.greeting}>Hey {name}, can you guess the color?</Text>
+      ) : null}
+
+      {gameStarted ? (
+        <>
+          <TextInput
+            placeholder="Type your guess (e.g., Red)"
+            style={styles.input}
+            onChangeText={(text) => setGuess(text)}
+            value={guess}
+            placeholderTextColor="#555"
+          />
+
+          <TouchableOpacity style={styles.button} onPress={checkGuess}>
+            <Text style={styles.buttonText}>Submit Guess</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <TouchableOpacity style={styles.button} onPress={startGame}>
+          <Text style={styles.buttonText}>
+            {currentColor ? 'Play Again' : 'Start Game'}
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      {message !== '' && <Text style={styles.result}>{message}</Text>}
+
+      <Text style={styles.footer}>👨‍💻 Developed by Verdo</Text>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: 20,
   },
   title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontSize: 28,
+    fontWeight: '600',
+    marginBottom: 30,
+    color: '#000',
   },
   input: {
+    height: 50,
+    width: '90%',
+    borderColor: '#888',
     borderWidth: 1,
-    borderColor: '#aaa',
-    width: '100%',
-    padding: 12,
-    borderRadius: 10,
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    backgroundColor: '#fff',
     marginBottom: 20,
     fontSize: 18,
+    color: '#000',
+  },
+  greeting: {
+    fontSize: 20,
+    marginBottom: 20,
+    color: '#000',
   },
   button: {
-    backgroundColor: '#333',
-    paddingHorizontal: 24,
+    backgroundColor: '#000',
     paddingVertical: 12,
+    paddingHorizontal: 25,
     borderRadius: 10,
-    marginTop: 10,
+    marginBottom: 25,
+    elevation: 3,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
   },
-  rgbText: {
-    fontSize: 22,
-    marginVertical: 10,
-  },
-  blocksContainer: {
-    flexDirection: 'row',
-    marginVertical: 20,
-  },
-  colorBlock: {
-    width: 80,
-    height: 80,
-    margin: 10,
-    borderRadius: 10,
-  },
-  message: {
+  result: {
     fontSize: 20,
-    marginTop: 20,
+    color: '#222',
+    fontWeight: '500',
+    marginTop: 15,
+    textAlign: 'center',
   },
   footer: {
     position: 'absolute',
-    bottom: 10,
-    alignSelf: 'center',
-  },
-  footerText: {
+    bottom: 30,
     fontSize: 14,
-    color: 'gray',
-    fontStyle: 'italic',
+    color: '#444',
   },
 });
