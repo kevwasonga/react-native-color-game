@@ -1,131 +1,153 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const getRandomColor = () => {
+  const r = Math.floor(Math.random() * 256);
+  const g = Math.floor(Math.random() * 256);
+  const b = Math.floor(Math.random() * 256);
+  return `rgb(${r}, ${g}, ${b})`;
+};
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+export default function App() {
+  const [name, setName] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const [colors, setColors] = useState([]);
+  const [correctColor, setCorrectColor] = useState('');
+  const [message, setMessage] = useState('');
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const generateColors = () => {
+    const newColors = Array.from({ length: 3 }, () => getRandomColor());
+    const answer = newColors[Math.floor(Math.random() * newColors.length)];
+    setColors(newColors);
+    setCorrectColor(answer);
+    setMessage('');
   };
 
-  /*
-   * To keep the template simple and small we're adding padding to prevent view
-   * from rendering under the System UI.
-   * For bigger apps the recommendation is to use `react-native-safe-area-context`:
-   * https://github.com/AppAndFlow/react-native-safe-area-context
-   *
-   * You can read more about it here:
-   * https://github.com/react-native-community/discussions-and-proposals/discussions/827
-   */
-  const safePadding = '5%';
+  useEffect(() => {
+    if (submitted) generateColors();
+  }, [submitted]);
+
+  const handleGuess = (color) => {
+    if (color === correctColor) {
+      setMessage(`Congratulations!!, ${name}! You guessed the correct color.`);
+    } else {
+      setMessage(`Miss!!, ${name}, that's not it. Try again!`);
+    }
+  };
+
+  if (!submitted) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Welcome! What's your name?</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your name"
+          value={name}
+          onChangeText={setName}
+        />
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            if (name.trim() !== '') {
+              setSubmitted(true);
+            }
+          }}
+        >
+          <Text style={styles.buttonText}>Start Game 🎮</Text>
+        </TouchableOpacity>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Developed by Verdo</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
-    <View style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        style={backgroundStyle}>
-        <View style={{paddingRight: safePadding}}>
-          <Header/>
-        </View>
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            paddingHorizontal: safePadding,
-            paddingBottom: safePadding,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
+    <View style={styles.container}>
+      <Text style={styles.title}>Hey {name}, guess the color!</Text>
+      <Text style={styles.rgbText}>{correctColor.toUpperCase()}</Text>
+      <View style={styles.blocksContainer}>
+        {colors.map((color, index) => (
+          <TouchableOpacity
+            key={index}
+            onPress={() => handleGuess(color)}
+            style={[styles.colorBlock, { backgroundColor: color }]}
+          />
+        ))}
+      </View>
+      <Text style={styles.message}>{message}</Text>
+      <TouchableOpacity style={styles.button} onPress={generateColors}>
+        <Text style={styles.buttonText}>🔄 Try New Color</Text>
+      </TouchableOpacity>
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Developed by Verdo</Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 20,
   },
-  sectionDescription: {
-    marginTop: 8,
+  input: {
+    borderWidth: 1,
+    borderColor: '#aaa',
+    width: '100%',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 20,
     fontSize: 18,
-    fontWeight: '400',
   },
-  highlight: {
-    fontWeight: '700',
+  button: {
+    backgroundColor: '#333',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  rgbText: {
+    fontSize: 22,
+    marginVertical: 10,
+  },
+  blocksContainer: {
+    flexDirection: 'row',
+    marginVertical: 20,
+  },
+  colorBlock: {
+    width: 80,
+    height: 80,
+    margin: 10,
+    borderRadius: 10,
+  },
+  message: {
+    fontSize: 20,
+    marginTop: 20,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 10,
+    alignSelf: 'center',
+  },
+  footerText: {
+    fontSize: 14,
+    color: 'gray',
+    fontStyle: 'italic',
   },
 });
-
-export default App;
